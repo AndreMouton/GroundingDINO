@@ -1,0 +1,5 @@
+model:
+  config_path: "/home/arahman/repos/GroundingDINO/groundingdino/config/GroundingDINO_SwinT_OGC.py"
+  ckpt: "/home/arahman/repos/GroundingDINO/weights/groundingdino_swint_ogc.pth"
+  box_thresh: 0.35
+  text_thresh: 0.25

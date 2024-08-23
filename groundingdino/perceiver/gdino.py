@@ -65,8 +65,11 @@ class GroundingDinoPerceiver(PerceiverBase):
             input_dict["IMAGE"], np.ndarray
         ), "GroundingDINO error: input image must be numpy array"
         assert isinstance(
-            input_dict["PROMPT"], str
-        ), "GroundingDINO error: prompt must be of type string"
+            input_dict["PROMPT"], list
+        ), "GroundingDINO error: prompt must be list of strings"
+        assert isinstance(
+            input_dict["PROMPT"][0], str
+        ), "GroundingDINO error: prompt must be list of strings"
 
         input_image, _ = self._image_transforms(
             Image.fromarray(input_dict["IMAGE"]), None
@@ -104,4 +107,5 @@ if __name__ == "__main__":
     input_dict = {}
     input_dict["IMAGE"] = image
     input_dict["PROMPT"] = prompt
-    gdino(input_dict)
+    result = gdino(input_dict)
+    print(result)
