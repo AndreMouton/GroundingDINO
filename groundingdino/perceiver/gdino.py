@@ -1,7 +1,8 @@
 from pathlib import Path
 from typing import Any
-
 import cv2
+import numpy as np
+
 from perceiver.defs import PerceiverOutput
 from perceiver.perceiver_factory import PerceiverFactory
 from perceiver.perceiver_base import PerceiverBase
@@ -9,11 +10,16 @@ from perceiver.perceiver_base import PerceiverBase
 from PIL import Image
 
 import groundingdino.datasets.transforms as T
-from groundingdino.util.inference import load_model, predict, annotate
+from groundingdino.util.inference import load_model, predict
+from groundingdino.util.box_ops import dino2np
 
 
 @PerceiverFactory.register("gdino")
 class GroundingDinoPerceiver(PerceiverBase):
+    """
+    GroundingDino Perceiver wrapper
+    """
+
     def __init__(self, config_file: Path):
         """
         Inits grounding dino model from config file
@@ -48,7 +54,20 @@ class GroundingDinoPerceiver(PerceiverBase):
         Returns (PerceiverOutput): Resulting bounding box detections
 
         """
-        # TODO add checks
+
+        assert (
+            "IMAGE" in input_dict
+        ), "GroundingDINO error: input dict must contain IMAGE"
+        assert (
+            "PROMPT" in input_dict
+        ), "GroundingDINO error: input dict must contain PROMPT"
+        assert isinstance(
+            input_dict["IMAGE"], np.ndarray
+        ), "GroundingDINO error: input image must be numpy array"
+        assert isinstance(
+            input_dict["PROMPT"], str
+        ), "GroundingDINO error: prompt must be of type string"
+
         input_image, _ = self._image_transforms(
             Image.fromarray(input_dict["IMAGE"]), None
         )
@@ -65,15 +84,13 @@ class GroundingDinoPerceiver(PerceiverBase):
         )
 
         # TODO populate output
-
-        annotated_frame = annotate(
-            image_source=input_dict["IMAGE"],
-            boxes=boxes,
-            logits=logits,
-            phrases=phrases,
+        image_shape = input_dict["IMAGE"].shape[:2]
+        result = PerceiverOutput(
+            shape=image_shape,
+            bboxes=dino2np(boxes, image_shape),
+            classes=phrases,
         )
-        cv2.imshow("Result", annotated_frame)
-        cv2.waitKey()
+        return result
 
 
 if __name__ == "__main__":
