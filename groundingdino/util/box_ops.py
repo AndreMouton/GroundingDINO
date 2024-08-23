@@ -2,8 +2,10 @@
 """
 Utilities for bounding box manipulation and GIoU.
 """
+
 import torch
 from torchvision.ops.boxes import box_area
+import numpy as np
 
 
 def box_cxcywh_to_xyxy(x):
@@ -129,6 +131,36 @@ def masks_to_boxes(masks):
     y_min = y_mask.masked_fill(~(masks.bool()), 1e8).flatten(1).min(-1)[0]
 
     return torch.stack([x_min, y_min, x_max, y_max], 1)
+
+
+def dino2np(boxes: torch.tensor, image_shape: tuple[int, int]) -> np.ndarray:
+    """
+    Converts gdino output bounding boxes to numpy arrays
+
+    Args:
+        boxes (torch.tensor): Nx4 normalized bounding boxes of form: (center_x, center_y, width, height)
+        image_shape (torch.tensor): Image shape to de-normalise to (rows, columns)
+
+    Returns:  Nx4 unnormalised numpy arrays (x_0, x_1, w, h)
+
+    """
+
+    # Unnormalise
+    boxes_out = boxes.detach().cpu().numpy()
+    boxes_out[:, 0] *= image_shape[1]
+    boxes_out[:, 1] *= image_shape[0]
+    boxes_out[:, 2] *= image_shape[1]
+    boxes_out[:, 3] *= image_shape[0]
+    boxes_out[:, 0] -= boxes_out[:, 2] / 2.0
+    boxes_out[:, 1] -= boxes_out[:, 3] / 2.0
+
+    # check limits
+    boxes_out[:, :2] = np.maximum(boxes_out[:, :2], 0)
+    assert np.all((boxes_out[:, 0] + boxes_out[:, 2]) < image_shape[1]) and np.all(
+        (boxes_out[:, 1] + boxes_out[:, 3]) < image_shape[0]
+    ), "Bounding box out of dimension"
+
+    return boxes_out
 
 
 if __name__ == "__main__":
