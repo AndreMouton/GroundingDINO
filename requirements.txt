@@ -8,4 +8,5 @@ numpy
 opencv-python
 supervision>=0.22.0
 pycocotools
+pytest
 perceiver @ git+https://github.com/AndreMouton/perceiver@base_lib
