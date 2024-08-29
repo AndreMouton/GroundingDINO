@@ -45,11 +45,11 @@ class GroundingDinoPerceiver(PerceiverBase):
             ]
         )
 
-    def __call__(self, input_dict: dict[Any, Any]) -> PerceiverOutput:
+    def __call__(self, input_dict: dict[str, Any]) -> PerceiverOutput:
         """
         Calls core gdino on input data and prompt
         Args:
-            input_dict (dict[Any, Any]): Dict with "IMAGE" and "PROMPTS" keys.
+            input_dict (dict[str, Any]): Dict with "IMAGE" and "PROMPTS" keys.
 
         Returns (PerceiverOutput): Resulting bounding box detections
 
